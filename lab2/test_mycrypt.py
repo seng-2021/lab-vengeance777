@@ -11,6 +11,7 @@ tr 'A-Za-z0-9=!"#€%&/()' 'n-za-mN-ZA-M=!"#€%&/()0-9'
 If characters outside allowed ones are used as input, raise ValueError.
 '''
 
+
 import timeit
 import pytest
 import mycrypt
@@ -63,3 +64,40 @@ def test_timing():
     timing2 = min(timeit.repeat('mycrypt.encode("a"*1000)',
                                 'import mycrypt', repeat=3, number=30))
     assert 0.95 * timing2 < timing1 < 1.05 * timing2
+
+## Added tests and parametrizes
+def test_encode_too_long():
+    """Test that encoding a string longer than 1000 characters raises ValueError."""
+    long_string = "a" * 1001
+    with pytest.raises(ValueError):
+        mycrypt.encode(long_string)
+
+@pytest.mark.parametrize("test_input,expected", [
+    ("", ""),  # Empty string
+    ("A" * 1000, "N" * 1000),  # Exactly 1000 characters
+])
+
+def test_edge_cases(test_input, expected):
+    """Verify edge cases for encoding."""
+    assert mycrypt.encode(test_input) == expected
+
+@pytest.mark.parametrize("invalid_input", ["abc123+", "abcåäö"])
+def test_mixed_invalid_char(invalid_input):
+    """Mixed valid and invalid characters should result in ValueError."""
+    with pytest.raises(ValueError):
+        mycrypt.encode(invalid_input)
+@pytest.mark.parametrize("invalid_input", [None, 123, [1, 2, 3], {"key": "value"}])
+def test_invalid_types(invalid_input):
+    '''Invalid parameter types should raise TypeError'''
+    with pytest.raises(TypeError):
+        mycrypt.encode(invalid_input)
+
+def test_encode_non_ascii_letter():
+    """Verify that encoding non-ASCII alphabetic characters raises a ValueError."""
+    with pytest.raises(ValueError):
+        mycrypt.encode("å")
+
+def test_coverage_for_empty_param():
+    """Manually call encode() with None to verify that it raises a TypeError."""
+    with pytest.raises(TypeError):
+        mycrypt.encode(None)
