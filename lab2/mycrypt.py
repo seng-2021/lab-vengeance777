@@ -39,4 +39,3 @@ def encode(s):
 def decode(s):
     return ''.join(
         codecs.encode(c, 'rot13').lower() if c.isalpha() else rev_digitmapping[c] for c in s)
-
